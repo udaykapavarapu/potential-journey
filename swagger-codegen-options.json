@@ -1,0 +1,10 @@
+{
+  "basePackage": "au.com.cap.ref.transactions.genreport",
+  "configPackage": "au.com.cap.ref.transactions.genreport",
+  "modelPackage": "au.com.cap.ref.transactions.genreport.model",
+  "apiPackage": "au.com.cap.ref.transactions.genreport.api",
+  "invokerPackage": "au.com.cap.ref.transactions.genreport",
+  "groupId": "au.com.cap.ref.transactions.genreport",
+  "artifactId": "cap.ref.transations.genreport",
+  "artifactVersion": "1.0-SNAPSHOT"
+}

@@ -1,0 +1,210 @@
+swagger: '2.0'
+
+#######################################################
+##                  API Information                  ##
+#######################################################
+info:
+  version: 1.0.0
+  title: Transactions Report Generation
+  description: |
+    This API generates a daily summary report of all the transactions made by the consumers based upon the input feed (.txt) file uploaded the consumer
+
+#######################################################
+##    Host, Base Path, Schemes and Content Types     ##
+#######################################################
+host: localhost:8080
+basePath: /cap/ref/transactions/genreport/v1
+schemes:
+  - http
+produces:
+  - application/json
+  - multipart/form-data
+consumes:
+  - multipart/form-data
+
+#######################################################
+##                   Parameters                      ##
+#######################################################
+parameters:
+  x-messageId:
+    name: x-messageId
+    in: header
+    description: Globally unique message identifier - GUID. This uniquely identifies the call
+    type: string
+    required: true
+  x-appCorrelationId:
+    name: x-appCorrelationId
+    in: header
+    description: Consumer generated message identifier. This groups together number of API calls comprising a business transaction
+    type: string
+    required: true
+  x-userId:
+    name: x-userId
+    in: header
+    description: Unique identifier for the user invoking the API (e.g. Staff Id)
+    type: string
+    required: true
+
+#######################################################
+##                    Paths                          ##
+#######################################################
+paths:
+  /generateSummaryReport:
+    post:
+      tags:
+        - Summary Report
+      description: Generates a daily summary report for the given feed (.txt) file
+      operationId: GenerateSummaryReport
+      parameters:
+        - $ref: '#/parameters/x-messageId'
+        - $ref: '#/parameters/x-appCorrelationId'
+        - $ref: '#/parameters/x-userId'
+        - name: inputFile
+          in: formData
+          type: file
+          description: Input feed (.txt)
+          required: true
+      responses:
+        '200':
+          $ref: '#/responses/200GenerateSummaryReportResponse'
+        '400':
+          $ref: '#/responses/400ErrorResponse'
+        '500':
+          $ref: '#/responses/500ErrorResponse'
+
+#######################################################
+##                   Responses                       ##
+#######################################################
+responses:
+  200GenerateSummaryReportResponse:
+    description: OK
+    schema:
+      $ref: '#/definitions/DailySummaryReport'
+  # Client Error Response
+  400ErrorResponse:
+    description: |
+      __Bad Request__
+      Possible Errors
+        | Error Code | Error Message | Error Description |
+        | ------- | --------- | ------ |
+        | 1001   | Invalid Input Parameter | The given {parameterName}-{parametersValue} is missing or invalid |
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+  # System Error Response
+  500ErrorResponse:
+    description: |
+      __Internal Server Error__
+      Possible Errors
+        | Error Code | Error Message | Error Description |
+        | -------- | --------- | --------|
+        | 10000   | Technical Error | {Error Details} |
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+
+#######################################################
+##                 Definitions                       ##
+#######################################################
+definitions:
+  DailySummaryReport:
+    type: object
+    description: This structure holds the daily summary report retrieved from the input feed (.txt)
+    properties:
+      dailySummaryReportDetails:
+        description: Daily Summary Report Details
+        type: array
+        items:
+          $ref: '#/definitions/DailySummaryReportDetails'
+      netTotalAmounts:
+        type: array
+        items:
+          $ref: '#/definitions/NetTotal'
+    required:
+      - dailySummaryReportDetails
+      - netTotal
+  DailySummaryReportDetails:
+    type: object
+    description: Daily Summary Report Details
+    properties:
+      clientInformation:
+        $ref: '#/definitions/ClientInformation'
+      productInformation:
+        $ref: '#/definitions/ProductInformation'
+      quantityLong:
+        type: string
+        description: Quantity Long
+      quantityShort:
+        type: string
+        description: Quantity Short
+    required:
+      - clientInformation
+      - productInformation
+      - totalTransactionAmount
+  ClientInformation:
+    type: object
+    description: Client Information
+    properties:
+      clientType:
+        type: string
+        description: Client Type
+      clientNumber:
+        type: string
+        description: Unique Identifier of the Client
+      accountNumber:
+        type: string
+        description: Account Number
+      subAccountNumber:
+        type: string
+        description: Sub Account Number
+  ProductInformation:
+    type: object
+    description: Product Information
+    properties:
+      exchangeCode:
+        type: string
+        description: Exchange Code
+      productGroupCode:
+        type: string
+        description: Product Group Code
+      symbol:
+        type: string
+        description: Symbol
+      expirationDate:
+        type: string
+        description: Expiration Date
+        format: 'CCYYMMDD'
+  ErrorResponse:
+    type: object
+    description: Error Response
+    properties:
+      errors:
+        type: array
+        items:
+          $ref: '#/definitions/Error'
+  Error:
+    type: object
+    description: Error
+    properties:
+      code:
+        description: Error Code
+        type: integer
+        format: int32
+      message:
+        description: Error Message
+        type: string
+      details:
+        description: Error Description
+        type: string
+    required:
+      - code
+      - message
+      - details
+  NetTotal:
+    type: object
+    description: Net Total per client
+    properties:
+      clientNumber:
+        type: string
+        description: Unique identifier of the client
+      totalTransactionAmount:
+        type: string
+        description: Total Quantity Long - Total Quantity Short per client
